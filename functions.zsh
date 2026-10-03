@@ -100,3 +100,67 @@ function waitforniri() {
     jq "$line"
   done
 }
+
+# Generic live editing function
+#alias live-bash="echo '#!/usr/bin/env bash\n# Bash will execute the script immediately after close\n' | vipe --suffix sh | bash"
+CAT="/usr/bin/bat --paging=never --plain"
+function live-edit() {
+  # First parameter is the file content prefix
+  local file_content_prefix
+  file_content_prefix="$1"
+  # Second parameter is the suffix for the temporary file
+  local temp_file_suffix
+  temp_file_suffix="$2"
+  # Third parameter is the commmand to which the file contents will be passed into
+  # Only simple commands like bash, python, powershell, etc.
+  local final_command
+  final_command="$3"
+
+  # Create a temporary file with the given suffix
+  local temp_file
+  temp_file=$(mktemp --suffix "$temp_file_suffix")
+  # Dump the prefix into the temporary file
+  echo "$file_content_prefix" >$temp_file
+  # Open the file in the editor
+  $EDITOR $temp_file
+  # Now that we're done editing, read everything from the file into a variable
+  local file_contents
+  file_contents=$(<$temp_file)
+  # Write out the file contents between the markers
+  echo "================================================================"
+  eval "$CAT $temp_file"
+  echo "================================================================"
+  # Clean up the temporary file
+  rm $temp_file
+
+  # Pass the contents directly into the final command
+  $final_command <<<"$file_contents"
+}
+
+function register-live-edit() {
+  # First parameter is the function suffix
+  local edit_function_suffix
+  edit_function_suffix="$1"
+  # Second parameter is the file content prefix
+  local file_content_prefix
+  file_content_prefix="$2"
+  # Third parameter is the suffix for the temporary file
+  local temp_file_suffix
+  temp_file_suffix="$3"
+  # Fourth parameter is the commmand to which the file contents will be passed into
+  # Only simple commands like bash, python, powershell, etc.
+  local final_command
+  final_command="$4"
+
+  # Register the new live edit function
+  eval "function live-$edit_function_suffix { live-edit \"$file_content_prefix\" \"$temp_file_suffix\" \"$final_command\" }"
+}
+
+# Bash live editing
+register-live-edit "bash" "#!/usr/bin/env bash\n# bash will immediatey run the contents in this file after quitting\n" ".sh" "bash"
+
+# Python live editing
+register-live-edit "python" "#!/usr/bin/env python\n# python will immediatey run the contents in this file after quitting\n" ".py" "python"
+
+# Perl live editing
+register-live-edit "perl" "#!/usr/bin/env perl\n# perl will immediatey run the contents in this file after quitting\n" ".perl" "perl"

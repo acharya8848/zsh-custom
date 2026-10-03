@@ -52,8 +52,4 @@ alias cat="bat"
 
 alias rsync="rsync --info=progress2 "
 
-alias live-bun="echo '// Bun will execute the script immediately after close\n' | vipe --suffix js | bun run -"
-alias live-python="echo '# Python will execute the script immediately after close\n' | vipe --suffix py | python"
-alias live-bash="echo '#!/usr/bin/env bash\n# Bash will execute the script immediately after close\n' | vipe --suffix sh | bash"
-
 alias epic100731="remmina -c ~/.local/share/remmina/group_rdp_epic100731_epic100731.remmina"
